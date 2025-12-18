@@ -11,10 +11,10 @@ export function HeaderBar() {
     <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/10 px-5 py-4 shadow-[0_18px_50px_rgba(30,12,6,0.45)] backdrop-blur-2xl">
       <div className="min-w-[200px]">
         <p className="text-xs font-semibold uppercase tracking-[0.4em] text-orange-200/80">
-          StacksBoost
+          Stacks Boost
         </p>
         <h1 className="text-xl font-semibold text-white sm:text-2xl">
-          Testnet Lending Vault
+          Stacks Boost Lending
         </h1>
         <p className="text-xs text-orange-100/70">
           Network: {STACKS_NETWORK === "mainnet" ? "Mainnet" : "Testnet"}

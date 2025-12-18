@@ -72,8 +72,8 @@ export function AppShell() {
         </div>
 
         <footer className="mt-auto flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-orange-100/70">
-          <span>StacksBoost Testnet • Lending Pool UI</span>
-          <span>Crafted for responsive web3 lending flows.</span>
+          <span>Stacks Boost Lending • Web3 demo vault</span>
+          <span>Built for clean, responsive DeFi flows.</span>
         </footer>
       </div>
     </main>

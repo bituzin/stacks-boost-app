@@ -8,7 +8,7 @@ export const STACKS_APP_DETAILS = {
 export const STACKS_REDIRECT_PATH = "/";
 export const STACKS_MANIFEST_PATH = "/manifest.json";
 
-const rawNetwork = (process.env.NEXT_PUBLIC_STACKS_NETWORK ?? "testnet")
+const rawNetwork = (process.env.NEXT_PUBLIC_STACKS_NETWORK ?? "mainnet")
   .toLowerCase()
   .trim();
 export const STACKS_NETWORK =
@@ -21,19 +21,22 @@ export const STACKS_EXPLORER_CHAIN = STACKS_NETWORK;
 
 export const STACKS_CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_STACKS_CONTRACT_ADDRESS ??
-  "ST1G4ZDXED8XM2XJ4Q4GJ7F4PG4EJQ1KKXVPSAX13";
+  "SP1G4ZDXED8XM2XJ4Q4GJ7F4PG4EJQ1KKXRCD0S3K";
 
 export const STACKS_CONTRACT_NAME =
-  process.env.NEXT_PUBLIC_STACKS_CONTRACT_NAME ?? "stackslend-v2";
+  process.env.NEXT_PUBLIC_STACKS_CONTRACT_NAME ?? "stackslend-v4";
 
 export const STACKS_SBTC_TOKEN_ADDRESS =
   process.env.NEXT_PUBLIC_SBTC_TOKEN_ADDRESS ?? STACKS_CONTRACT_ADDRESS;
 
 export const STACKS_SBTC_TOKEN_NAME =
-  process.env.NEXT_PUBLIC_SBTC_TOKEN_NAME ?? "mock-sbtc-token-v2";
+  process.env.NEXT_PUBLIC_SBTC_TOKEN_NAME ?? "sbtc-deposit-dummy-v2";
+
+export const STACKS_SBTC_ASSET_NAME =
+  process.env.NEXT_PUBLIC_SBTC_ASSET_NAME ?? "sbtc";
 
 export const STACKS_ORACLE_ADDRESS =
   process.env.NEXT_PUBLIC_ORACLE_ADDRESS ?? STACKS_CONTRACT_ADDRESS;
 
 export const STACKS_ORACLE_NAME =
-  process.env.NEXT_PUBLIC_ORACLE_NAME ?? "mock-oracle-v2";
+  process.env.NEXT_PUBLIC_ORACLE_NAME ?? "mock-oracle-v4";
