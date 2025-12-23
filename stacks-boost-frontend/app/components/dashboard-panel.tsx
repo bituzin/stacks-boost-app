@@ -18,6 +18,7 @@ import {
   STACKS_SBTC_TOKEN_NAME,
 } from "@/lib/stacks-config";
 import { formatMicrostxToStx } from "@/lib/stx-utils";
+import { WalletPanel } from "./wallet-panel";
 
 type TxItem = {
   tx_id: string;
@@ -174,102 +175,105 @@ export function DashboardPanel() {
     return `${formatMicrostxToStx(depositBalance)} STX`;
   }, [depositBalance]);
 
-
   return (
-    <div className="w-full rounded-3xl border border-white/15 bg-white/10 p-6 shadow-[0_24px_70px_rgba(30,12,6,0.55)] backdrop-blur-2xl">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.32em] text-orange-200/80">
-            Dashboard
-          </p>
-          <h2 className="text-2xl font-semibold text-white">
-            Wallet overview
-          </h2>
-          <p className="text-sm text-orange-100/70">
-            Balance + recent transactions
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void loadDashboard()}
-          disabled={!isConnected || isLoading}
-          className="h-10 rounded-full border border-white/15 px-4 text-xs font-semibold uppercase tracking-[0.22em] text-orange-100 transition hover:border-white/30 hover:bg-white/10 disabled:cursor-not-allowed disabled:text-slate-500"
-        >
-          {isLoading ? "Loading..." : "Refresh"}
-        </button>
-      </div>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_2fr]">
-        <div className="grid gap-3">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200/80">
-              Wallet balance
+    <div className="grid gap-6">
+      <div className="w-full rounded-3xl border border-white/15 bg-white/10 p-6 shadow-[0_24px_70px_rgba(30,12,6,0.55)] backdrop-blur-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-orange-200/80">
+              Dashboard
             </p>
-            <p className="mt-3 text-2xl font-semibold text-white">
-              {balanceLabel}
-            </p>
-            <p className="mt-2 text-xs text-orange-100/70">
-              {stxAddress ? stxAddress : "Connect wallet to view balance."}
+            <h2 className="text-2xl font-semibold text-white">
+              Wallet overview
+            </h2>
+            <p className="text-sm text-orange-100/70">
+              Balance + recent transactions
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200/80">
-              Deposited balance
-            </p>
-            <p className="mt-3 text-2xl font-semibold text-white">
-              {depositLabel}
-            </p>
-            <p className="mt-2 text-xs text-orange-100/70">
-              Contract: {STACKS_CONTRACT_NAME}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200/80">
-              Mock sBTC balance
-            </p>
-            <p className="mt-3 text-2xl font-semibold text-white">
-              {sbtcLabel}
-            </p>
-            <p className="mt-2 text-xs text-orange-100/70">
-              Token: {STACKS_SBTC_TOKEN_NAME}
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={() => void loadDashboard()}
+            disabled={!isConnected || isLoading}
+            className="h-10 rounded-full border border-white/15 px-4 text-xs font-semibold uppercase tracking-[0.22em] text-orange-100 transition hover:border-white/30 hover:bg-white/10 disabled:cursor-not-allowed disabled:text-slate-500"
+          >
+            {isLoading ? "Loading..." : "Refresh"}
+          </button>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200/80">
-            Recent transactions
-          </p>
-          {transactions.length === 0 ? (
-            <p className="mt-3 text-sm text-orange-100/70">
-              {isConnected ? "No recent transactions." : "Connect wallet to view."}
-            </p>
-          ) : (
-            <div className="mt-3 grid gap-2">
-              {transactions.map((tx) => (
-                <div
-                  key={tx.tx_id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-orange-50/90"
-                >
-                  <span className="font-mono">{shortTx(tx.tx_id)}</span>
-                  <span className="text-xs uppercase tracking-[0.22em] text-orange-100/70">
-                    {tx.tx_type}
-                  </span>
-                  <span className="text-xs text-orange-100/70">
-                    {tx.tx_status}
-                  </span>
-                </div>
-              ))}
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_2fr]">
+          <div className="grid gap-3">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200/80">
+                Wallet balance
+              </p>
+              <p className="mt-3 text-2xl font-semibold text-white">
+                {balanceLabel}
+              </p>
+              <p className="mt-2 text-xs text-orange-100/70">
+                {stxAddress ? stxAddress : "Connect wallet to view balance."}
+              </p>
             </div>
-          )}
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200/80">
+                Deposited balance
+              </p>
+              <p className="mt-3 text-2xl font-semibold text-white">
+                {depositLabel}
+              </p>
+              <p className="mt-2 text-xs text-orange-100/70">
+                Contract: {STACKS_CONTRACT_NAME}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200/80">
+                Mock sBTC balance
+              </p>
+              <p className="mt-3 text-2xl font-semibold text-white">
+                {sbtcLabel}
+              </p>
+              <p className="mt-2 text-xs text-orange-100/70">
+                Token: {STACKS_SBTC_TOKEN_NAME}
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200/80">
+              Recent transactions
+            </p>
+            {transactions.length === 0 ? (
+              <p className="mt-3 text-sm text-orange-100/70">
+                {isConnected ? "No recent transactions." : "Connect wallet to view."}
+              </p>
+            ) : (
+              <div className="mt-3 grid gap-2">
+                {transactions.map((tx) => (
+                  <div
+                    key={tx.tx_id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-orange-50/90"
+                  >
+                    <span className="font-mono">{shortTx(tx.tx_id)}</span>
+                    <span className="text-xs uppercase tracking-[0.22em] text-orange-100/70">
+                      {tx.tx_type}
+                    </span>
+                    <span className="text-xs text-orange-100/70">
+                      {tx.tx_status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        {error ? (
+          <div className="mt-4 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+            {error}
+          </div>
+        ) : null}
       </div>
 
-      {error ? (
-        <div className="mt-4 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-          {error}
-        </div>
-      ) : null}
+      <WalletPanel />
     </div>
   );
 }

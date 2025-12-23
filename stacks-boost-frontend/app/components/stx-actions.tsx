@@ -15,6 +15,7 @@ import {
 } from "@stacks/transactions";
 
 import { useStacks } from "@/lib/hooks/use-stacks";
+import { useWalletConnect } from "@/lib/hooks/use-walletconnect";
 import {
   STACKS_APP_DETAILS,
   STACKS_CONTRACT_ADDRESS,
@@ -64,9 +65,25 @@ type StxActionsMode = "all" | "deposit" | "borrow";
 
 export function StxActions({ mode = "all" }: { mode?: StxActionsMode }) {
   const { isConnected, isLoading, isPending, stxAddress, connect } = useStacks();
+  const {
+    isConnected: isWcConnected,
+    isPending: isWcPending,
+    isLoading: isWcLoading,
+    status: wcStatus,
+    error: wcError,
+    stxAddress: wcStxAddress,
+    connect: connectWalletConnect,
+    disconnect: disconnectWalletConnect,
+    request: wcRequest,
+  } = useWalletConnect();
   const [amount, setAmount] = useState("1");
   const [borrowAmount, setBorrowAmount] = useState("1");
   const [collateralAmount, setCollateralAmount] = useState("1");
+  const [wcAmount, setWcAmount] = useState("1");
+  const [wcRecipient, setWcRecipient] = useState("");
+  const [wcMemo, setWcMemo] = useState("");
+  const [wcTxId, setWcTxId] = useState<string | null>(null);
+  const [wcFeedback, setWcFeedback] = useState<string | null>(null);
   const [depositedBalance, setDepositedBalance] = useState<bigint | null>(null);
   const [borrowedBalance, setBorrowedBalance] = useState<bigint | null>(null);
   const [balanceError, setBalanceError] = useState<string | null>(null);
@@ -90,6 +107,7 @@ export function StxActions({ mode = "all" }: { mode?: StxActionsMode }) {
     () => parseStxToMicrostx(collateralAmount),
     [collateralAmount],
   );
+  const parsedWcAmount = useMemo(() => parseStxToMicrostx(wcAmount), [wcAmount]);
   const canSubmit =
     isConnected && !isLoading && !isPending && !isWorking && !!parsedAmount;
   const canBorrow =
@@ -100,6 +118,12 @@ export function StxActions({ mode = "all" }: { mode?: StxActionsMode }) {
     !!parsedBorrowAmount &&
     !!parsedCollateralAmount;
   const hasActiveBorrow = borrowedBalance !== null && borrowedBalance > 0n;
+  const canWcTransfer =
+    isWcConnected &&
+    !isWcLoading &&
+    !isWcPending &&
+    !!parsedWcAmount &&
+    !!wcRecipient;
 
   const activeNetwork = STACKS_NETWORK_INSTANCE;
 
@@ -348,6 +372,46 @@ export function StxActions({ mode = "all" }: { mode?: StxActionsMode }) {
     }
   };
 
+  const submitWalletConnectTransfer = async () => {
+    setWcFeedback(null);
+    setWcTxId(null);
+
+    if (!isWcConnected || !wcStxAddress) {
+      setWcFeedback("Connect a WalletConnect wallet first.");
+      return;
+    }
+    if (!parsedWcAmount) {
+      setWcFeedback("Enter a valid amount (up to 6 decimals).");
+      return;
+    }
+    if (!wcRecipient) {
+      setWcFeedback("Enter a recipient address.");
+      return;
+    }
+
+    try {
+      const result = await wcRequest<{
+        txid?: string;
+        transaction?: string;
+      }>({
+        method: "stx_transferStx",
+        params: {
+          sender: wcStxAddress,
+          recipient: wcRecipient,
+          amount: parsedWcAmount.toString(),
+          memo: wcMemo,
+          network: STACKS_NETWORK,
+        },
+      });
+      setWcTxId(result?.txid ?? null);
+      setWcFeedback("WalletConnect transfer submitted.");
+    } catch (error) {
+      setWcFeedback(
+        error instanceof Error ? error.message : "WalletConnect transfer failed.",
+      );
+    }
+  };
+
   return (
     <div className="w-full rounded-3xl border border-white/15 bg-white/10 p-5 shadow-[0_24px_70px_rgba(30,12,6,0.55)] backdrop-blur-2xl sm:p-6">
       <div className="flex flex-col gap-2">
@@ -423,6 +487,78 @@ export function StxActions({ mode = "all" }: { mode?: StxActionsMode }) {
             </div>
           </ActionCard>
         ) : null}
+      </div>
+
+      <div className="mt-6">
+        <ActionCard title="WalletConnect Transfer" subtitle="Send STX via WalletConnect">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs text-orange-100/70">
+              Status: {wcStatus}
+            </span>
+            {wcStxAddress ? (
+              <span className="text-xs text-orange-100/70">
+                Address: {wcStxAddress}
+              </span>
+            ) : null}
+          </div>
+          <TextField
+            label="Recipient address"
+            value={wcRecipient}
+            onChange={setWcRecipient}
+            placeholder="SP..."
+          />
+          <AmountField
+            label="Amount (STX)"
+            value={wcAmount}
+            onChange={setWcAmount}
+            hint={
+              parsedWcAmount
+                ? `${parsedWcAmount.toString()} microstacks`
+                : "Enter a number with up to 6 decimals."
+            }
+          />
+          <TextField
+            label="Memo (optional)"
+            value={wcMemo}
+            onChange={setWcMemo}
+            placeholder="Memo"
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {isWcConnected ? (
+              <SecondaryButton onClick={disconnectWalletConnect}>
+                Disconnect WalletConnect
+              </SecondaryButton>
+            ) : (
+              <PrimaryButton
+                onClick={() => void connectWalletConnect()}
+                disabled={isWcLoading || isWcPending}
+              >
+                Connect WalletConnect
+              </PrimaryButton>
+            )}
+            <PrimaryButton
+              onClick={submitWalletConnectTransfer}
+              disabled={!canWcTransfer}
+            >
+              Send STX
+            </PrimaryButton>
+          </div>
+          {wcError ? (
+            <div className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-100">
+              {wcError}
+            </div>
+          ) : null}
+          {wcFeedback ? (
+            <div className="rounded-lg bg-orange-500/10 px-3 py-2 text-sm text-orange-100">
+              {wcFeedback}
+            </div>
+          ) : null}
+          {wcTxId ? (
+            <div className="rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-xs text-orange-100/80">
+              WalletConnect tx: {wcTxId}
+            </div>
+          ) : null}
+        </ActionCard>
       </div>
 
       {!isConnected ? (
@@ -534,6 +670,28 @@ function AmountField({ label, value, hint, onChange }: AmountFieldProps) {
         placeholder="0.0"
       />
       <span className="text-xs text-orange-100/70">{hint}</span>
+    </label>
+  );
+}
+
+type TextFieldProps = {
+  label: string;
+  value: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+};
+
+function TextField({ label, value, placeholder, onChange }: TextFieldProps) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-sm font-medium text-orange-50/90">{label}</span>
+      <input
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-12 rounded-xl border border-white/15 bg-white/10 px-4 text-base text-white outline-none transition placeholder:text-orange-100/60 focus:border-orange-200/70 focus:ring-2 focus:ring-orange-400/30"
+        placeholder={placeholder}
+      />
     </label>
   );
 }

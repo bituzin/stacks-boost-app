@@ -10,6 +10,7 @@ import {
   getSelectedProviderId,
   showConnect,
 } from "@stacks/connect";
+import { InvalidStateError } from "@stacks/common";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -70,6 +71,22 @@ const initialState: WalletState = {
   providerName: null,
   isLoading: true,
 };
+
+const SESSION_STORAGE_KEY = "blockstack-session";
+
+function clearCorruptSession(error: unknown) {
+  if (!(error instanceof InvalidStateError)) {
+    return false;
+  }
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    } catch {
+      // Ignore storage failures.
+    }
+  }
+  return true;
+}
 
 export function useStacks(): UseStacksResult {
   const [state, setState] = useState<WalletState>(initialState);
@@ -178,6 +195,17 @@ export function useStacks(): UseStacksResult {
         profile: undefined,
       }));
     } catch (error) {
+      if (clearCorruptSession(error)) {
+        setState((prev) => ({
+          ...prev,
+          status: "disconnected",
+          error: null,
+          isLoading: false,
+          addresses: {},
+          profile: undefined,
+        }));
+        return;
+      }
       setState((prev) => ({
         ...prev,
         status: "error",
@@ -196,9 +224,30 @@ export function useStacks(): UseStacksResult {
     () => async () => {
       const session = getUserSession();
       if (!session) return;
-      if (session.isUserSignedIn()) {
-        const userData = await session.loadUserData();
-        setConnectedState(userData);
+      try {
+        if (session.isUserSignedIn()) {
+          const userData = await session.loadUserData();
+          setConnectedState(userData);
+          return;
+        }
+      } catch (error) {
+        if (clearCorruptSession(error)) {
+          setState((prev) => ({
+            ...prev,
+            status: "disconnected",
+            error: null,
+            isLoading: false,
+            addresses: {},
+            profile: undefined,
+          }));
+          return;
+        }
+        setState((prev) => ({
+          ...prev,
+          status: "error",
+          error: error instanceof Error ? error.message : "Failed to connect wallet",
+          isLoading: false,
+        }));
         return;
       }
 
