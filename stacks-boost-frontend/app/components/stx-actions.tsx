@@ -424,9 +424,13 @@ export function StxActions({ mode = "all", activeWallet }: StxActionsProps) {
         }
       }
     } catch (error) {
-      setFeedback(
-        error instanceof Error ? error.message : "Failed to open wallet.",
-      );
+      const message =
+        error instanceof Error ? error.message : "Failed to open wallet.";
+      if (/cancel/i.test(message)) {
+        setFeedback("Transaction cancelled.");
+      } else {
+        setFeedback(message);
+      }
       setIsWorking(false);
     }
   };
